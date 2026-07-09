@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.PositionMapper">
+
+    <resultMap id="posMap" type="com.company.kintai.employee.entity.PositionEntity">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="rank" column="rank"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="posMap">
+        SELECT id, code, name, rank, created_at, updated_at,
+               created_by, updated_by, version, deleted_at
+        FROM app.position
+        WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectAll" resultMap="posMap">
+        SELECT id, code, name, rank, created_at, updated_at,
+               created_by, updated_by, version, deleted_at
+        FROM app.position
+        WHERE deleted_at IS NULL
+        ORDER BY rank
+    </select>
+
+</mapper>

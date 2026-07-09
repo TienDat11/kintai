@@ -1,0 +1,296 @@
+{
+  "meta": {
+    "title": "RLS Policy Coverage Gap Audit — Sprint 0 §14",
+    "audit_date": "2026-07-09",
+    "migration_dir": "D:/java/kintai-monorepo/apps/backend/src/main/resources/db/migration",
+    "session_var": "app.current_tenant_id (ground truth per V3:27)",
+    "total_app_tables": 39
+  },
+
+  "covered": [
+    {
+      "table": "employee",
+      "policy_name": "emp_tenant_isolation",
+      "evidence": "V3:17-18 (ENABLE+FORCE RLS), V3:28-32 (policy USING department_id = app.current_tenant_id)"
+    },
+    {
+      "table": "employee_role",
+      "policy_name": "emp_role_tenant",
+      "evidence": "V3:19-20 (ENABLE+FORCE RLS), V3:34-42 (policy via EXISTS employee/department_id = app.current_tenant_id)"
+    },
+    {
+      "table": "tenants",
+      "policy_name": "tenants_isolation",
+      "evidence": "V14:53-54 (ENABLE+FORCE RLS), V14:61-65 (policy USING id = app.current_tenant_id::uuid)"
+    },
+    {
+      "table": "outbox_events",
+      "policy_name": "outbox_tenant_isolation",
+      "evidence": "V14:55-56 (ENABLE+FORCE RLS), V14:67-71 (policy USING tenant_id = app.current_tenant_id::uuid)"
+    },
+    {
+      "table": "processed_events",
+      "policy_name": "processed_tenant_isolation",
+      "evidence": "V14:57-58 (ENABLE+FORCE RLS), V14:73-77 (policy USING tenant_id = app.current_tenant_id::uuid)"
+    }
+  ],
+
+  "rls_enabled_no_policy": [
+    {
+      "table": "role",
+      "type": "global RBAC (reference)",
+      "rls_evidence": "V3:21-22 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE — no CREATE POLICY anywhere in V0-V14",
+      "impact": "ROLE table INVISIBLE to kintai_app. Role lookup in login/auth pipeline FAILS. Likely this table should NOT have RLS at all (it is global RBAC, not tenant-scoped). Either DROP RLS or add a blanket policy FOR all authenticated users."
+    },
+    {
+      "table": "role_permission",
+      "type": "global RBAC (reference)",
+      "rls_evidence": "V3:23-24 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE — no CREATE POLICY anywhere",
+      "impact": "role_permission table INVISIBLE. Permission checks during auth FAIL. Same as role — likely should not have RLS."
+    },
+    {
+      "table": "attendance_record",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V4:70-71 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Attendance records INVISIBLE. Employees cannot clock in/out, managers cannot review. Critical P0 bug."
+    },
+    {
+      "table": "break_record",
+      "type": "tenant-scoped (via attendance_record FK chain)",
+      "rls_evidence": "V4:99-100 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Break records INVISIBLE. Cannot log or view breaks."
+    },
+    {
+      "table": "leave_type",
+      "type": "global lookup (reference)",
+      "rls_evidence": "V5:68-69 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Leave type catalog INVISIBLE. Dropdowns empty, leave request creation fails. Should either DROP RLS (global data) or add blanket policy."
+    },
+    {
+      "table": "leave_balance",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V5:70-71 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Leave balances INVISIBLE. Employees cannot check remaining PTO."
+    },
+    {
+      "table": "leave_request",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V5:72-73 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Leave requests INVISIBLE. Cannot submit or approve leave."
+    },
+    {
+      "table": "payroll_run",
+      "type": "tenant-scoped (payroll context)",
+      "rls_evidence": "V6:58-59 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Payroll runs INVISIBLE. Payroll processing pipeline broken."
+    },
+    {
+      "table": "payroll_item",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V6:60-61 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Payroll line items INVISIBLE. Payslips cannot be generated."
+    },
+    {
+      "table": "allowance",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V7:104-105 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Allowance breakdown INVISIBLE."
+    },
+    {
+      "table": "deduction",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V7:106-107 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Deduction breakdown INVISIBLE."
+    },
+    {
+      "table": "bonus_payment",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V7:108-109 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Bonus records INVISIBLE."
+    },
+    {
+      "table": "year_end_adjustment",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V7:110-111 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Year-end adjustment data INVISIBLE."
+    },
+    {
+      "table": "resident_tax",
+      "type": "tenant-scoped (via employee_id FK)",
+      "rls_evidence": "V7:112-113 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Resident tax records INVISIBLE."
+    },
+    {
+      "table": "audit_log",
+      "type": "tenant-scoped (cross-cutting, needs isolation)",
+      "rls_evidence": "V10:24-25 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Audit log INVISIBLE. Audit reader role BYPASSRLS avoids this for readers, but kintai_app role cannot SELECT audit_log."
+    },
+    {
+      "table": "audit_log_detail",
+      "type": "tenant-scoped (child of audit_log)",
+      "rls_evidence": "V10:41-42 (ENABLE+FORCE RLS)",
+      "policy_evidence": "NONE",
+      "impact": "Audit log detail INVISIBLE. Same as audit_log."
+    }
+  ],
+
+  "tenant_scoped_no_rls": [
+    {
+      "table": "department",
+      "has_tenant_id": false,
+      "scope_mechanism": "Used as tenant proxy (employee.department_id = app.current_tenant_id in V3 policy). Departments ARE tenant-scoped.",
+      "evidence": "V2:7-19 (CREATE TABLE, no tenant_id, no RLS, no policy)"
+    },
+    {
+      "table": "position",
+      "has_tenant_id": false,
+      "scope_mechanism": "Referenced by employee (tenant-scoped via employee FK chain). Positions are tenant-specific.",
+      "evidence": "V2:24-37 (CREATE TABLE, no tenant_id, no RLS)"
+    },
+    {
+      "table": "contract",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V2:73-93 (CREATE TABLE, no tenant_id, no RLS)"
+    },
+    {
+      "table": "bank_account",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V2:96-118 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "dependent_family",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V2:121-141 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "commute_route",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V2:144-163 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "emergency_contact",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V2:166-182 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "shift_assignment",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V4:27-42 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "notification",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK recipient_id → employee → department = tenant",
+      "evidence": "V9:6-18 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "refresh_token",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK user_id → employee → department = tenant",
+      "evidence": "V9:36-45 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "timesheet",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK employee_id → employee → department = tenant",
+      "evidence": "V9:82-101 (CREATE TABLE, no RLS)"
+    },
+    {
+      "table": "timesheet_entry",
+      "has_tenant_id": false,
+      "scope_mechanism": "FK timesheet_id → timesheet → employee → department = tenant",
+      "evidence": "V9:104-121 (CREATE TABLE, no RLS)"
+    }
+  ],
+
+  "non_tenant_tables": [
+    {
+      "table": "permission",
+      "reason": "Global RBAC catalog. No tenant_id, no FK to employee. Correctly has NO RLS.",
+      "evidence": "V1:18-29"
+    },
+    {
+      "table": "tax_rate",
+      "reason": "National tax bracket reference data (Japan). Global by nature.",
+      "evidence": "V8:5-22, no RLS"
+    },
+    {
+      "table": "social_insurance_rate",
+      "reason": "National social insurance rate reference (Japan). Global by nature.",
+      "evidence": "V8:25-42, no RLS"
+    },
+    {
+      "table": "holiday",
+      "reason": "Japan national holiday calendar. Global reference data.",
+      "evidence": "V9:135-148, no RLS"
+    },
+    {
+      "table": "company_setting",
+      "reason": "Key-value app configuration. Could be global or per-tenant; no tenant_id column. If per-tenant, needs migration to add tenant_id + RLS.",
+      "evidence": "V9:124-132, no RLS"
+    },
+    {
+      "table": "project",
+      "reason": "No employee_id or tenant_id. Could be cross-tenant lookup. If per-tenant, needs migration.",
+      "evidence": "V9:62-79, no RLS"
+    }
+  ],
+
+  "debatable_or_complex": [
+    {
+      "table": "file_attachment",
+      "note": "Polymorphic (entity_type/entity_id). Uploaded_by FK to employee suggests tenant-scope, but entity could span tenants. Needs design decision before RLS.",
+      "evidence": "V9:21-34, no RLS"
+    },
+    {
+      "table": "approval_workflow",
+      "note": "Polymorphic (entity_type/entity_id). Cannot write tenant-isolation policy without knowing entity tenant mapping strategy.",
+      "evidence": "V9:48-59, no RLS"
+    },
+    {
+      "table": "shift",
+      "note": "Seed/lookup data (3 shifts: normal/early/night). Currently global. If per-tenant, needs design change.",
+      "evidence": "V4:7-24, no RLS"
+    }
+  ],
+
+  "summary": {
+    "total_app_tables": 39,
+    "covered_with_policy": 5,
+    "rls_enabled_no_policy": 16,
+    "tenant_scoped_no_rls": 12,
+    "non_tenant": 6,
+    "debatable": 3,
+    "blocked_tables": "16 tables with RLS FORCE + no policy are COMPLETELY INVISIBLE to kintai_app role. This is a P0 bug — all features relying on these tables fail silently."
+  },
+
+  "recommendation": {
+    "fix_category_A_rls_enabled_no_policy": "11 tenant-scoped tables need a tenant-isolation CREATE POLICY in V15 (attendance_record, break_record, leave_balance, leave_request, payroll_run, payroll_item, allowance, deduction, bonus_payment, year_end_adjustment, resident_tax)",
+    "fix_category_B_rls_wrongly_enabled": "3 global reference tables need DROP RLS in V15 (role, role_permission, leave_type) — they have FORCE RLS but no policy, making them invisible. They are reference data, not tenant-scoped.",
+    "fix_category_C_rls_on_audit_tables": "2 audit tables either need a tenant-isolation policy or audit_writer BYPASSRLS handles them differently. Currently invisible to kintai_app. (audit_log, audit_log_detail)",
+    "fix_category_D_tenant_scoped_no_rls_at_all": "12 tables need ENABLE RLS + tenant-isolation policy in V15 (department, position, contract, bank_account, dependent_family, commute_route, emergency_contact, shift_assignment, notification, refresh_token, timesheet, timesheet_entry)",
+    "total_v15_scope": "3 DROP RLS + 25 new policies across 25 tenant-scoped tables (some may share a single policy via table inheritance patterns, but each table needs at minimum one policy)"
+  }
+}

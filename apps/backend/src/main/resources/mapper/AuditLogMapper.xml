@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.common.audit.mapper.AuditLogMapper">
+
+    <resultMap id="auditLogMap" type="com.company.kintai.common.audit.entity.AuditLogEntity">
+        <id property="id" column="id"/>
+        <result property="occurredAt" column="occurred_at"/>
+        <result property="tableName" column="table_name"/>
+        <result property="recordId" column="record_id"/>
+        <result property="operation" column="operation"/>
+        <result property="changedBy" column="changed_by"/>
+        <result property="clientIp" column="client_ip"/>
+    </resultMap>
+
+    <select id="selectByTableAndRecord" resultMap="auditLogMap">
+        SELECT id, occurred_at, table_name, record_id, operation, changed_by, client_ip
+        FROM audit_log
+        WHERE table_name = #{tableName} AND record_id = #{recordId}
+        ORDER BY occurred_at DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,31 @@
+spring:
+  profiles:
+    active: prod
+  messages:
+    basename: messages
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  flyway:
+    enabled: true
+    schemas: app,audit,archive
+    default-schema: app
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    # Skip test dependency for non-test builds - optional
+    # mybatis-spring-boot-starter-test will be picked up only during test
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:change-me-min-32-bytes-256bit-secret-key!!}
+    access-token-minutes: 15
+    refresh-token-days: 7
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}

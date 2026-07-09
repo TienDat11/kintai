@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.common.security.mapper.RoleMapper">
+
+    <resultMap id="roleMap" type="com.company.kintai.common.security.entity.RoleEntity">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="roleMap">
+        SELECT id, code, name, description, created_at, updated_at, created_by, updated_by, version, deleted_at
+        FROM app.role
+        WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByCode" resultMap="roleMap">
+        SELECT id, code, name, description, created_at, updated_at, created_by, updated_by, version, deleted_at
+        FROM app.role
+        WHERE code = #{code} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectAll" resultMap="roleMap">
+        SELECT id, code, name, description, created_at, updated_at, created_by, updated_by, version, deleted_at
+        FROM app.role
+        WHERE deleted_at IS NULL
+        ORDER BY code
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.role(code, name, description, created_by, updated_by)
+        VALUES(#{code}, #{name}, #{description}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.role
+        SET name = #{name},
+            description = #{description},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.role
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

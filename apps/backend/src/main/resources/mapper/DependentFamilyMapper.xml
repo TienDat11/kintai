@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.DependentFamilyMapper">
+
+    <resultMap id="dependentFamilyMap" type="com.company.kintai.employee.entity.DependentFamilyEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="fullName" column="full_name"/>
+        <result property="fullNameKana" column="full_name_kana"/>
+        <result property="relationship" column="relationship"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="mynumberEncrypted" column="mynumber_encrypted"/>
+        <result property="socialInsuranceStatus" column="social_insurance_status"/>
+        <result property="income" column="income"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="dependentFamilyMap">
+        SELECT * FROM app.dependent_family WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByEmployeeId" resultMap="dependentFamilyMap">
+        SELECT * FROM app.dependent_family WHERE employee_id = #{employeeId} AND deleted_at IS NULL
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.dependent_family(employee_id, full_name, full_name_kana, relationship,
+                                         birth_date, mynumber_encrypted,
+                                         social_insurance_status, income,
+                                         created_by, updated_by)
+        VALUES(#{employeeId}, #{fullName}, #{fullNameKana}, #{relationship},
+               #{birthDate}, #{mynumberEncrypted},
+               #{socialInsuranceStatus}, #{income},
+               #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.dependent_family
+        SET full_name = #{fullName},
+            full_name_kana = #{fullNameKana},
+            relationship = #{relationship},
+            birth_date = #{birthDate},
+            social_insurance_status = #{socialInsuranceStatus},
+            income = #{income},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.dependent_family
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

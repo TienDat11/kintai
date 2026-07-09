@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.CommuteRouteMapper">
+
+    <resultMap id="commuteRouteMap" type="com.company.kintai.employee.entity.CommuteRouteEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="fromStation" column="from_station"/>
+        <result property="toStation" column="to_station"/>
+        <result property="viaStations" column="via_stations"/>
+        <result property="distanceKm" column="distance_km"/>
+        <result property="monthlyPassCost" column="monthly_pass_cost"/>
+        <result property="validFrom" column="valid_from"/>
+        <result property="validTo" column="valid_to"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="commuteRouteMap">
+        SELECT * FROM app.commute_route WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByEmployeeId" resultMap="commuteRouteMap">
+        SELECT * FROM app.commute_route WHERE employee_id = #{employeeId} AND deleted_at IS NULL
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.commute_route(employee_id, from_station, to_station, via_stations,
+                                      distance_km, monthly_pass_cost, valid_from, valid_to,
+                                      created_by, updated_by)
+        VALUES(#{employeeId}, #{fromStation}, #{toStation}, #{viaStations},
+               #{distanceKm}, #{monthlyPassCost}, #{validFrom}, #{validTo},
+               #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.commute_route
+        SET from_station = #{fromStation},
+            to_station = #{toStation},
+            via_stations = #{viaStations},
+            distance_km = #{distanceKm},
+            monthly_pass_cost = #{monthlyPassCost},
+            valid_from = #{validFrom},
+            valid_to = #{validTo},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.commute_route
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

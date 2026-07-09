@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.EmergencyContactMapper">
+
+    <resultMap id="emergencyContactMap" type="com.company.kintai.employee.entity.EmergencyContactEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="name" column="name"/>
+        <result property="relationship" column="relationship"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="priority" column="priority"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="emergencyContactMap">
+        SELECT * FROM app.emergency_contact WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByEmployeeId" resultMap="emergencyContactMap">
+        SELECT * FROM app.emergency_contact WHERE employee_id = #{employeeId} AND deleted_at IS NULL
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.emergency_contact(employee_id, name, relationship, phone, address, priority,
+                                          created_by, updated_by)
+        VALUES(#{employeeId}, #{name}, #{relationship}, #{phone}, #{address}, #{priority},
+               #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.emergency_contact
+        SET name = #{name},
+            relationship = #{relationship},
+            phone = #{phone},
+            address = #{address},
+            priority = #{priority},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.emergency_contact
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

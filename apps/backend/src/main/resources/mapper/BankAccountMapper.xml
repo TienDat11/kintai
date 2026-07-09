@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.BankAccountMapper">
+
+    <resultMap id="bankAccountMap" type="com.company.kintai.employee.entity.BankAccountEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="bankCode" column="bank_code"/>
+        <result property="branchCode" column="branch_code"/>
+        <result property="accountType" column="account_type"/>
+        <result property="accountNumberEncrypted" column="account_number_encrypted"/>
+        <result property="accountNumberHash" column="account_number_hash"/>
+        <result property="accountHolder" column="account_holder"/>
+        <result property="accountHolderKana" column="account_holder_kana"/>
+        <result property="isPrimary" column="is_primary"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="bankAccountMap">
+        SELECT * FROM app.bank_account WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByEmployeeId" resultMap="bankAccountMap">
+        SELECT * FROM app.bank_account WHERE employee_id = #{employeeId} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectPrimaryByEmployeeId" resultMap="bankAccountMap">
+        SELECT * FROM app.bank_account
+        WHERE employee_id = #{employeeId} AND is_primary = TRUE AND deleted_at IS NULL
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.bank_account(employee_id, bank_code, branch_code, account_type,
+                                     account_number_encrypted, account_number_hash,
+                                     account_holder, account_holder_kana, is_primary,
+                                     created_by, updated_by)
+        VALUES(#{employeeId}, #{bankCode}, #{branchCode}, #{accountType},
+               #{accountNumberEncrypted}, #{accountNumberHash},
+               #{accountHolder}, #{accountHolderKana}, #{isPrimary},
+               #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.bank_account
+        SET bank_code = #{bankCode},
+            branch_code = #{branchCode},
+            account_type = #{accountType},
+            account_holder = #{accountHolder},
+            account_holder_kana = #{accountHolderKana},
+            is_primary = #{isPrimary},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="updateSetNonPrimaryByEmployeeId">
+        UPDATE app.bank_account
+        SET is_primary = FALSE,
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE employee_id = #{employeeId} AND is_primary = TRUE AND deleted_at IS NULL
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.bank_account
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

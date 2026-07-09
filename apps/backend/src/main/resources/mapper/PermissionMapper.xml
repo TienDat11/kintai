@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.common.security.mapper.PermissionMapper">
+
+    <resultMap id="permMap" type="com.company.kintai.common.security.entity.PermissionEntity">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="permMap">
+        SELECT id, code, description, created_at, updated_at, created_by, updated_by, version, deleted_at
+        FROM app.permission
+        WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByCode" resultMap="permMap">
+        SELECT id, code, description, created_at, updated_at, created_by, updated_by, version, deleted_at
+        FROM app.permission
+        WHERE code = #{code} AND deleted_at IS NULL
+    </select>
+
+</mapper>

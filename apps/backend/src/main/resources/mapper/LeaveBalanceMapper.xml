@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.leave.mapper.LeaveBalanceMapper">
+
+    <resultMap id="leaveBalanceMap" type="com.company.kintai.leave.entity.LeaveBalanceEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="fiscalYear" column="fiscal_year"/>
+        <result property="leaveTypeId" column="leave_type_id"/>
+        <result property="grantedDays" column="granted_days"/>
+        <result property="usedDays" column="used_days"/>
+        <result property="remainingDays" column="remaining_days"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectByEmployeeAndYear" resultMap="leaveBalanceMap">
+        SELECT * FROM app.leave_balance
+        WHERE employee_id = #{employeeId}
+          AND fiscal_year = #{fiscalYear}
+          AND leave_type_id = #{leaveTypeId}
+          AND deleted_at IS NULL
+    </select>
+
+    <update id="updateUsedDays">
+        UPDATE app.leave_balance
+        SET used_days = #{usedDays},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+</mapper>

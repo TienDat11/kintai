@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.employee.mapper.EmployeeMapper">
+
+    <resultMap id="employeeMap" type="com.company.kintai.employee.entity.EmployeeEntity">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="fullName" column="full_name"/>
+        <result property="fullNameKana" column="full_name_kana"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="postalCode" column="postal_code"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="hireDate" column="hire_date"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="positionId" column="position_id"/>
+        <result property="status" column="status"/>
+        <result property="mynumberEncrypted" column="mynumber_encrypted"/>
+        <result property="mynumberHash" column="mynumber_hash"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="version" column="version"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <sql id="searchWhere">
+        <where>
+            e.deleted_at IS NULL
+            <if test="f.keyword != null and f.keyword != ''">
+                AND (e.full_name LIKE CONCAT('%', #{f.keyword}, '%')
+                     OR e.code LIKE CONCAT('%', #{f.keyword}, '%'))
+            </if>
+            <if test="f.departmentId != null">
+                AND e.department_id = #{f.departmentId}
+            </if>
+            <if test="f.status != null and f.status != ''">
+                AND e.status = #{f.status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectById" resultMap="employeeMap">
+        SELECT e.*, d.name AS department_name
+        FROM app.employee e
+        LEFT JOIN app.department d ON e.department_id = d.id AND d.deleted_at IS NULL
+        WHERE e.id = #{id} AND e.deleted_at IS NULL
+    </select>
+
+    <select id="selectBySearch" resultMap="employeeMap">
+        SELECT e.*, d.name AS department_name
+        FROM app.employee e
+        LEFT JOIN app.department d ON e.department_id = d.id AND d.deleted_at IS NULL
+        <include refid="searchWhere"/>
+        ORDER BY e.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countBySearch" resultType="long">
+        SELECT COUNT(*)
+        FROM app.employee e
+        <include refid="searchWhere"/>
+    </select>
+
+    <select id="existsByCode" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM app.employee
+        WHERE code = #{code} AND deleted_at IS NULL
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app.employee(code, full_name, full_name_kana, email, phone, postal_code,
+                                 birth_date, hire_date, department_id, position_id, status,
+                                 mynumber_encrypted, mynumber_hash, created_by, updated_by)
+        VALUES(#{code}, #{fullName}, #{fullNameKana}, #{email}, #{phone}, #{postalCode},
+               #{birthDate}, #{hireDate}, #{departmentId}, #{positionId}, #{status},
+               #{mynumberEncrypted}, #{mynumberHash}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="update">
+        UPDATE app.employee
+        SET code = #{code},
+            full_name = #{fullName},
+            full_name_kana = #{fullNameKana},
+            email = #{email},
+            phone = #{phone},
+            postal_code = #{postalCode},
+            birth_date = #{birthDate},
+            hire_date = #{hireDate},
+            department_id = #{departmentId},
+            position_id = #{positionId},
+            status = #{status},
+            mynumber_encrypted = #{mynumberEncrypted},
+            mynumber_hash = #{mynumberHash},
+            updated_at = now(),
+            updated_by = #{updatedBy},
+            version = version + 1
+        WHERE id = #{id} AND deleted_at IS NULL AND version = #{version}
+    </update>
+
+    <update id="deleteById">
+        UPDATE app.employee
+        SET deleted_at = now(), updated_at = now(), updated_by = #{updatedBy}
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

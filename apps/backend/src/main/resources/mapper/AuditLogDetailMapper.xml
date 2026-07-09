@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.common.audit.mapper.AuditLogDetailMapper">
+
+    <resultMap id="auditLogDetailMap" type="com.company.kintai.common.audit.entity.AuditLogDetailEntity">
+        <result property="auditId" column="audit_id"/>
+        <result property="occurredAt" column="occurred_at"/>
+        <result property="oldData" column="old_data"/>
+        <result property="newData" column="new_data"/>
+    </resultMap>
+
+    <select id="selectDetail" resultMap="auditLogDetailMap">
+        SELECT audit_id, occurred_at,
+               old_data::text AS old_data,
+               new_data::text AS new_data
+        FROM audit_log_detail
+        WHERE audit_id = #{auditId} AND occurred_at = #{occurredAt}
+    </select>
+
+</mapper>

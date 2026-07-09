@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.kintai.attendance.mapper.AttendanceMapper">
+
+    <resultMap id="attendanceMap" type="com.company.kintai.attendance.entity.AttendanceRecordEntity">
+        <id property="id" column="id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="workDate" column="work_date"/>
+        <result property="checkIn" column="check_in"/>
+        <result property="checkOut" column="check_out"/>
+        <result property="breakMinutes" column="break_minutes"/>
+        <result property="status" column="status"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByEmployeeAndDate" resultMap="attendanceMap">
+        SELECT * FROM attendance_record
+        WHERE employee_id = #{employeeId} AND work_date = #{workDate} AND deleted = FALSE
+    </select>
+
+    <select id="selectByEmployeeAndMonth" resultMap="attendanceMap">
+        SELECT * FROM attendance_record
+        WHERE employee_id = #{employeeId}
+          AND YEAR(work_date) = #{year}
+          AND MONTH(work_date) = #{month}
+          AND deleted = FALSE
+        ORDER BY work_date ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO attendance_record(employee_id, work_date, check_in, check_out, break_minutes, status)
+        VALUES(#{employeeId}, #{workDate}, #{checkIn}, #{checkOut}, #{breakMinutes}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE attendance_record
+        SET check_in = #{checkIn},
+            check_out = #{checkOut},
+            break_minutes = #{breakMinutes},
+            status = #{status}
+        WHERE id = #{id} AND deleted = FALSE
+    </update>
+
+</mapper>
